@@ -1,0 +1,49 @@
+version: "3"
+
+services:
+
+  # qinglong
+  qinglong:
+    #container_name: qinglong
+    image: whyour/qinglong
+    volumes:
+      - ./qinglong:/ql/data
+    environment:
+      # 代理
+      - http_proxy=http://clash:7890
+      - https_proxy=http://clash:7890
+      - all_proxy=http://clash:7890
+    #ports:
+    #  - "5700:5700"
+    restart: unless-stopped
+
+  # clash
+  clash:
+    image: dreamacro/clash
+    #container_name: clash
+    volumes:
+      - ./clash_config.yaml:/root/.config/clash/config.yaml
+    ports:
+    #  - "9090:9090" # 控制api端口
+       - "127.0.0.1:7890:7890"
+    restart: unless-stopped
+
+  # 比较好看的图形界面
+  yacd:
+    image: haishanh/yacd
+    #container_name: yacd
+    #ports:
+    #  - "1234:80"
+    restart: unless-stopped
+
+  # 路由转发
+  nginx:
+    image: nginx
+    # container_name: nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx:/etc/nginx/ssl_file
+    ports:
+      - "443:443"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
